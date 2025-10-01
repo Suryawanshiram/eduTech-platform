@@ -26,7 +26,6 @@ router.post("/login", login);
 
 // Route for user signup
 router.post("/signup", signup);
-
 // Route for sending OTP to user
 router.post("/sendOTP", sendOTP);
 

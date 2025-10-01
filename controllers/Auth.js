@@ -68,7 +68,6 @@ exports.sendOTP = async (req, res) => {
 
 exports.signup = async (req, res) => {
   try {
-    // Destructure fields from the request body
     const {
       firstName,
       lastName,
@@ -79,7 +78,8 @@ exports.signup = async (req, res) => {
       contactNumber,
       otp,
     } = req.body;
-    // Check if All Details are there or not
+
+    // 1️⃣ Check if all required fields are provided
     if (
       !firstName ||
       !lastName ||
@@ -88,21 +88,21 @@ exports.signup = async (req, res) => {
       !confirmPassword ||
       !otp
     ) {
-      return res.status(403).send({
+      return res.status(403).json({
         success: false,
-        message: "All Fields are required",
-      });
-    }
-    // Check if password and confirm password match
-    if (password !== confirmPassword) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Password and Confirm Password do not match. Please try again.",
+        message: "All fields are required",
       });
     }
 
-    // Check if user already exists
+    // 2️⃣ Password & confirm password match
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Password and confirm password do not match",
+      });
+    }
+
+    // 3️⃣ Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -111,59 +111,64 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Find the most recent OTP for the email
-    const response = await OTP.find({ email }).sort({ createdAt: -1 }).limit(1);
-    console.log(response);
-    if (response.length === 0) {
-      // OTP not found for the email
-      return res.status(400).json({
-        success: false,
-        message: "The OTP is not valid",
-      });
-    } else if (otp !== response[0].otp) {
-      // Invalid OTP
+    // 4️⃣ Fetch the most recent OTP for this email
+    const otpRecord = await OTP.find({ email })
+      .sort({ createdAt: -1 }) // Make sure your OTP schema has timestamps
+      .limit(1);
+
+    if (!otpRecord || otpRecord.length === 0) {
       return res.status(400).json({
         success: false,
         message: "The OTP is not valid",
       });
     }
 
-    // Hash the password
+    // 5️⃣ Compare OTPs as strings
+    if (otp.toString() !== otpRecord[0].otp.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "The OTP is not valid",
+      });
+    }
+
+    // 6️⃣ Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the user
-    let approved = "";
-    approved === "Instructor" ? (approved = false) : (approved = true);
+    // 7️⃣ Determine approval status
+    let approved = accountType === "Instructor" ? false : true;
 
-    // Create the Additional Profile For User
+    // 8️⃣ Create user profile
     const profileDetails = await Profile.create({
       gender: null,
       dateOfBirth: null,
       about: null,
-      contactNumber: null,
+      contactNumber: contactNumber || null,
     });
+
+    // 9️⃣ Create the user
     const user = await User.create({
       firstName,
       lastName,
       email,
-      contactNumber,
+      contactNumber: contactNumber || null,
       password: hashedPassword,
-      accountType: accountType,
-      approved: approved,
+      accountType,
+      approved,
       additionalDetails: profileDetails._id,
       image: `https://api.dicebear.com/6.x/initials/svg?seed=${firstName} ${lastName}`,
     });
 
+    // 10️⃣ Return success response
     return res.status(200).json({
       success: true,
-      user,
       message: "User registered successfully",
+      user,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Signup error:", error);
     return res.status(500).json({
       success: false,
-      message: "User cannot be registered. Please try again.",
+      message: "User cannot be registered. Please try again later.",
     });
   }
 };

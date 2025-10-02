@@ -35,12 +35,12 @@ exports.showAllCategories = async (req, res) => {
     const allCategories = await Category.find({});
     console.log(allCategories);
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       data: allCategories,
     });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: error.message,
     });

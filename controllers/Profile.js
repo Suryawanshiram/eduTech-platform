@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const Course = require("../models/Course");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
 const CourseProgress = require("../models/CourseProgress");
-
+const { convertSecondsToDuration } = require("../utils/secToDuration");
 exports.updateProfile = async (req, res) => {
   try {
     // fetch data

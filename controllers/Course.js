@@ -2,11 +2,15 @@ const Course = require("../models/Course");
 const Tag = require("../models/Tags");
 const User = require("../models/User");
 const Category = require("../models/Category");
+const { convertSecondsToDuration } = require("../utils/secToDuration");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
 
 // Create a new course
 exports.createCourse = async (req, res) => {
   try {
+    // Get user ID from request object
+    const userId = req.user.id;
+
     // Get all required fields from request body
     let {
       courseName,
@@ -18,18 +22,31 @@ exports.createCourse = async (req, res) => {
       status,
       instructions: _instructions,
     } = req.body;
+    // Get thumbnail image from request files
+    const thumbnail = req.files.thumbnailImage;
 
-    // get thumbnail image from request file
-    const thumbnail = req.file.thumbnailImage;
+    // Convert the tag and instructions from stringified Array to Array
+    // const tag = JSON.parse(_tag);
+    // const instructions = JSON.parse(_instructions);
+    // Convert the tag and instructions safely
+    let tag;
+    let instructions;
 
-    //convert tag and instructions to array
-    const tag = JSON.parse(_tag);
-    const instructions = JSON.parse(_instructions);
+    try {
+      tag = JSON.parse(_tag);
+      if (!Array.isArray(tag)) tag = [tag];
+    } catch {
+      tag = _tag ? [_tag] : [];
+    }
 
-    console.log("tags", tag);
-    console.log("instructions", instructions);
+    try {
+      instructions = JSON.parse(_instructions);
+      if (!Array.isArray(instructions)) instructions = [instructions];
+    } catch {
+      instructions = _instructions ? [_instructions] : [];
+    }
 
-    // check for missing fields
+    // Check if any of the required fields are missing
     if (
       !courseName ||
       !courseDescription ||
@@ -45,17 +62,16 @@ exports.createCourse = async (req, res) => {
         message: "All Fields are Mandatory",
       });
     }
-
     if (!status || status === undefined) {
       status = "Draft";
     }
-
     // Check if the user is an instructor
     const instructorDetails = await User.findById(userId, {
       accountType: "Instructor",
     });
+
     if (!instructorDetails) {
-      return res.status(403).json({
+      return res.status(404).json({
         success: false,
         message: "Instructor Details Not Found",
       });
@@ -69,14 +85,12 @@ exports.createCourse = async (req, res) => {
         message: "Category Details Not Found",
       });
     }
-
     // Upload the Thumbnail to Cloudinary
     const thumbnailImage = await uploadImageToCloudinary(
       thumbnail,
       process.env.FOLDER_NAME
     );
     console.log(thumbnailImage);
-
     // Create a new course with the given details
     const newCourse = await Course.create({
       courseName,
@@ -121,9 +135,12 @@ exports.createCourse = async (req, res) => {
       message: "Course Created Successfully",
     });
   } catch (error) {
-    return res.status(500).json({
+    // Handle any errors that occur during the creation of the course
+    console.error(error);
+    res.status(500).json({
       success: false,
       message: "Failed to create course",
+      error: error.message,
     });
   }
 };

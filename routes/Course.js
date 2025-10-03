@@ -1,8 +1,5 @@
-// Import the required modules
 const express = require("express");
 const router = express.Router();
-
-// Import the Controllers
 
 // Course Controllers Import
 const {
@@ -67,6 +64,8 @@ router.post("/updateSubSection", auth, isInstructor, updatedSubSection);
 
 // Delete a Section
 router.post("/deleteSection", auth, isInstructor, deleteSection);
+// Update a Section
+router.post("/updateSection", auth, isInstructor, updateSection);
 // Edit Sub Section
 router.post("/updateSubSection", auth, isInstructor, updatedSubSection);
 // Delete Sub Section

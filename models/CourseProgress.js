@@ -1,13 +1,13 @@
 const mongoose = require("mongoose");
 
-const courseProgress = new mongoose.Schema({
+const courseProgressSchema = new mongoose.Schema({
   courseID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Course",
   },
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+    ref: "User",
   },
   completedVideos: [
     {
@@ -17,4 +17,27 @@ const courseProgress = new mongoose.Schema({
   ],
 });
 
-module.exports = mongoose.model("courseProgress", courseProgress);
+module.exports =
+  mongoose.models.courseProgress ||
+  mongoose.model("courseProgress", courseProgressSchema);
+
+// const mongoose = require("mongoose");
+
+// const courseProgress = new mongoose.Schema({
+//   courseID: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: "Course",
+//   },
+//   userId: {
+//     type: mongoose.Schema.Types.ObjectId,
+//     ref: "user",
+//   },
+//   completedVideos: [
+//     {
+//       type: mongoose.Schema.Types.ObjectId,
+//       ref: "SubSection",
+//     },
+//   ],
+// });
+
+// module.exports = mongoose.model("courseProgress", courseProgress);

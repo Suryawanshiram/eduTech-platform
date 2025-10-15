@@ -4,6 +4,9 @@ const User = require("../models/User");
 const Category = require("../models/Category");
 const { convertSecondsToDuration } = require("../utils/secToDuration");
 const { uploadImageToCloudinary } = require("../utils/imageUploader");
+const Section = require("../models/Section");
+const SubSection = require("../models/SubSection");
+const CourseProgress = require("../models/courseProgress");
 
 // Create a new course
 exports.createCourse = async (req, res) => {
@@ -149,15 +152,15 @@ exports.createCourse = async (req, res) => {
 exports.editCourse = async (req, res) => {
   try {
     const { courseId } = req.body;
-    const updates = req.body;
-    const course = await Course.findById(courseId);
+    const updates = { ...req.body }; // ✅ FIX
 
+    const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ error: "Course not found" });
     }
 
     // If Thumbnail Image is found, update it
-    if (req.files) {
+    if (req.files && req.files.thumbnailImage) {
       console.log("thumbnail update");
       const thumbnail = req.files.thumbnailImage;
       const thumbnailImage = await uploadImageToCloudinary(
@@ -168,21 +171,17 @@ exports.editCourse = async (req, res) => {
     }
 
     // Update only the fields that are present in the request body
-    for (const key in updates) {
-      if (updates.hasOwnProperty(key)) {
-        if (key === "tag" || key === "instructions") {
-          course[key] = JSON.parse(updates[key]);
-        } else {
-          course[key] = updates[key];
-        }
+    Object.keys(updates).forEach((key) => {
+      if (key === "tag" || key === "instructions") {
+        course[key] = JSON.parse(updates[key]);
+      } else {
+        course[key] = updates[key];
       }
-    }
+    });
 
     await course.save();
 
-    const updatedCourse = await Course.findOne({
-      _id: courseId,
-    })
+    const updatedCourse = await Course.findOne({ _id: courseId })
       .populate({
         path: "instructor",
         populate: {

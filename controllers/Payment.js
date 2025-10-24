@@ -5,10 +5,12 @@ const crypto = require("crypto");
 const User = require("../models/User");
 const mailSender = require("../utils/mailSender");
 const courseEnrollmentEmail = require("../mail/templates/courseEnrollmentEmail");
-const paymentSuccessEmail = require("../mail/templates/paymentSuccessEmail");
+const {
+  paymentSuccessEmail,
+} = require("../mail/templates/paymentSuccessEmail");
+const CourseProgress = require("../models/courseProgress");
 
 // Capture the payment and initiate the Razorpay order
-
 exports.capturePayment = async (req, res) => {
   const { courses } = req.body;
   const userId = req.user.id;
@@ -187,10 +189,20 @@ const enrollStudents = async (courses, userId, res) => {
           message: "Course not found",
         });
       }
+      const courseProgress = await CourseProgress.create({
+        courseID: courseId,
+        userId: userId,
+        completedVideos: [],
+      });
       // find the student and add the course to their list of enrolled courses
       const enrolledStudents = await User.findByIdAndUpdate(
         userId,
-        { $push: { courses: courseId } },
+        {
+          $push: {
+            courses: courseId,
+            courseProgress: courseProgress._id,
+          },
+        },
         { new: true }
       );
 

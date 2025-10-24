@@ -27,8 +27,7 @@ app.use(
     origin: [
       "http://localhost:3000",
       "http://localhost:5173",
-      "http://localhost:4000",
-      "https://edu-tech-frontend-git-main-suryawanshirams-projects.vercel.app",
+      "https://edu-tech-frontend-indol.vercel.app",
     ],
     credentials: true,
   })

@@ -2,24 +2,28 @@ const nodemailer = require("nodemailer");
 
 const mailSender = async (email, title, body) => {
   try {
-    let transporter = nodemailer.createTransport({
+    const transporter = nodemailer.createTransport({
       host: process.env.MAIL_HOST,
+      port: 587, // ✅ recommended for Brevo
+      secure: false, // ✅ use STARTTLS
       auth: {
         user: process.env.MAIL_USER,
         pass: process.env.MAIL_PASS,
       },
     });
 
-    let info = await transporter.sendMail({
-      from: "EduTech || Techies - RamS",
-      to: `${email}`,
-      subject: `${title}`,
+    // ✅ Proper "from" field
+    const info = await transporter.sendMail({
+      from: `"EduTech || Techies - RamS" <98d74a001@smtp-brevo.com>`,
+      to: email,
+      subject: title,
       html: `<h1>${body}</h1>`,
     });
-    console.log("Message sent: %s", info.messageId);
+
+    console.log("✅ Message sent:", info.messageId);
     return info;
   } catch (error) {
-    console.log(error.message);
+    console.error("❌ Mail send failed:", error.message);
   }
 };
 

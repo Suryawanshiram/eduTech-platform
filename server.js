@@ -29,7 +29,7 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5173",
       "https://edu-tech-frontend-indol.vercel.app",
-      "https://rs-edu-tech.vercel.app/",
+      "https://rs-edu-tech.vercel.app",
     ],
     credentials: true,
   })

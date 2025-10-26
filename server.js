@@ -1,28 +1,20 @@
 const express = require("express");
 const app = express();
-
-const userRoutes = require("./routes/User");
-const profileRoutes = require("./routes/Profile");
-const paymentRoutes = require("./routes/Payments");
-const courseRoutes = require("./routes/Course");
-const contactUsRoute = require("./routes/Contact");
-
-const database = require("./config/database");
-const cookieParser = require("cookie-parser");
 const cors = require("cors");
-const { cloudinaryConnect } = require("./config/cloudinary");
+const cookieParser = require("cookie-parser");
 const fileUpload = require("express-fileupload");
 const dotenv = require("dotenv");
-dotenv.config();
+const { cloudinaryConnect } = require("./config/cloudinary");
+const database = require("./config/database");
 
+// Load environment variables
+dotenv.config();
 const PORT = process.env.PORT || 4000;
 
-// connect to database
+// ✅ 1. Connect to database FIRST
 database.connect();
 
-// middlewares
-app.use(express.json());
-app.use(cookieParser());
+// ✅ 2. Apply CORS middleware BEFORE any JSON or cookie parsing
 app.use(
   cors({
     origin: [
@@ -35,6 +27,11 @@ app.use(
   })
 );
 
+// ✅ 3. Then parse cookies & JSON
+app.use(express.json());
+app.use(cookieParser());
+
+// ✅ 4. Handle file uploads
 app.use(
   fileUpload({
     useTempFiles: true,
@@ -42,25 +39,32 @@ app.use(
   })
 );
 
-// connect to cloudinary
+// ✅ 5. Connect to Cloudinary
 cloudinaryConnect();
 
-// routes
+// ✅ 6. Import routes AFTER middlewares
+const userRoutes = require("./routes/User");
+const profileRoutes = require("./routes/Profile");
+const paymentRoutes = require("./routes/Payments");
+const courseRoutes = require("./routes/Course");
+const contactUsRoute = require("./routes/Contact");
+
+// ✅ 7. Use routes
 app.use("/api/v1/auth", userRoutes);
 app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/reach", contactUsRoute);
 
-// app.use("/api/v1/tag", tagRoutes);
-
+// ✅ 8. Health check endpoint
 app.get("/", (req, res) => {
   res.json({
     success: true,
-    message: "Your server is running...",
+    message: "Your EduTech backend server is running successfully 🚀",
   });
 });
 
+// ✅ 9. Start server
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`✅ Server is running on port ${PORT}`);
 });

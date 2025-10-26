@@ -57,7 +57,7 @@ app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/reach", contactUsRoute);
 
 // ✅ 8. Health check endpoint
-app.get("/", (req, res) => {
+app.get("/api/v1", (req, res) => {
   res.json({
     success: true,
     message: "Your EduTech backend server is running successfully 🚀",
